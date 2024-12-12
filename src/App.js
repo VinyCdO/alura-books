@@ -1,5 +1,6 @@
 import Header from './componentes/header';
 import Pesquisa from './componentes/pesquisa';
+import UltimosLancamentos from './componentes/ultimosLancamentos';
 import styled from 'styled-components';
 
 const AppContainer = styled.div`
@@ -13,6 +14,7 @@ function App() {
     <AppContainer>
       <Header />      
       <Pesquisa />
+      <UltimosLancamentos />
     </AppContainer>
   );
 }
