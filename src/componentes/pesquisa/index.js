@@ -1,7 +1,9 @@
 import Input from "../input";
 import styled from "styled-components";
 import { useState } from "react";
-import { livros } from "./dadosPesquisa.js";
+import { useEffect } from "react";
+import { getLivros } from "../../servicos/livros.js";
+import capaLivro from "../../imagens/livro.png";
 
 const PesquisaContainer = styled.section`
   color: #002F52;
@@ -42,29 +44,62 @@ const Resultado = styled.div`
 `
 
 function Pesquisa() {
-  const [livrosPesquisados, setLivrosPesquisados] = useState([]);  
-
-  return (
+   const [livrosPesquisados, setLivrosPesquisados] = useState([]);
+   const [livros, setLivros] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(null);
+  
+   useEffect(() => {
+    const fetchData = async () => {
+     try {
+      const response = await getLivros();
+          if (response && Array.isArray(response)) {
+              setLivros(response);
+          } else {
+            console.error("Resposta da API em formato incorreto:", response);
+            setError(new Error("Dados da API em formato inválido."));
+          }
+     } catch (err) {
+      setError(err);
+     } finally {
+      setLoading(false);
+     }
+    };
+  
+    fetchData();
+   }, []);
+  
+   if (loading) {
+    return <div>Carregando...</div>;
+   }
+  
+   if (error) {
+    return <div>Erro: {error.message}</div>;
+   }
+  
+   return (
     <PesquisaContainer>
       <Titulo>Já sabe por onde comerçar?</Titulo>
       <Subtitulo>Encontre seu livro em nossa estante.</Subtitulo>
-      <Input 
+      <Input
         placeholder="Escreva sua próxima leitura"
         onBlur={evento => {
-          const textoPesquisado = evento.target.value
-          const resultadoPesquisa = livros.filter(livro => livro.nome.includes(textoPesquisado))
-          setLivrosPesquisados(resultadoPesquisa)        
-        }                  
+        const textoPesquisado = evento.target.value;
+        if (livros) { // Verifica se livros foi populado
+          const resultadoPesquisa = livros.filter(item => item.nome.toLowerCase().includes(textoPesquisado.toLowerCase()));
+          setLivrosPesquisados(resultadoPesquisa);
         }
-      />
-      { livrosPesquisados.map( livro => (
-        <Resultado>
-          <img src={livro.src} alt={livro.nome}/>
-          <p>{livro.nome}</p>          
+        }
+      }/>
+      {livrosPesquisados.map(livro => (
+        <Resultado key={livro._id}> {/* Adicione a key aqui */}
+          <img src={capaLivro} alt={livro.nome} /> {/* Adicione src na tag img */}
+          <p>{livro.nome}</p>
         </Resultado>
-      ))}      
+        ))
+      }
     </PesquisaContainer>
-  )
-}
-
-export default Pesquisa;
+   );
+  }
+  
+  export default Pesquisa;
